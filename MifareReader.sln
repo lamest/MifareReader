@@ -7,9 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MifareReader", "MifareReade
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MifareReaderLibriary", "MifareReaderLibriary\MifareReaderLibriary.csproj", "{3A49C5CB-0087-4670-877C-2AFBB2E6BA47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pcsc-sharp", "..\Lamest\pcsc-sharp\pcsc-sharp\pcsc-sharp.csproj", "{459E0FB4-AF42-4123-9923-7EA68CA01B09}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pcsc-sharp-rx", "..\Lamest\pcsc-sharp\pcsc-sharp-rx\pcsc-sharp-rx.csproj", "{9A5B987D-DB36-4F8A-A62E-642DEEF51F7D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pcsc-sharp", "..\pcsc-sharp\pcsc-sharp\pcsc-sharp.csproj", "{459E0FB4-AF42-4123-9923-7EA68CA01B09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{459E0FB4-AF42-4123-9923-7EA68CA01B09}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{459E0FB4-AF42-4123-9923-7EA68CA01B09}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{459E0FB4-AF42-4123-9923-7EA68CA01B09}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9A5B987D-DB36-4F8A-A62E-642DEEF51F7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A5B987D-DB36-4F8A-A62E-642DEEF51F7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A5B987D-DB36-4F8A-A62E-642DEEF51F7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A5B987D-DB36-4F8A-A62E-642DEEF51F7D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

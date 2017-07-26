@@ -52,7 +52,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Lamest\pcsc-sharp\pcsc-sharp\pcsc-sharp.csproj">
+    <ProjectReference Include="..\..\pcsc-sharp\pcsc-sharp\pcsc-sharp.csproj">
       <Project>{459e0fb4-af42-4123-9923-7ea68ca01b09}</Project>
       <Name>pcsc-sharp</Name>
     </ProjectReference>

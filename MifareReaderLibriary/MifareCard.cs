@@ -92,6 +92,18 @@ namespace MifareReaderLibriary
 
         internal bool UpdateBinary(byte msb, byte lsb, byte[] data)
         {
+            if (data.Length >= 16)
+            {
+                throw new Exception("Data length is more than 16 bytes");
+            }
+            if (msb >= 16)
+            {
+                throw new Exception("msb is more than 16");
+            }
+            if (lsb >= 4)
+            {
+                throw new Exception("lsb is more than 4");
+            }
             var updateBinaryCmd = new CommandApdu(IsoCase.Case3Short, SCardProtocol.Any)
             {
                 CLA = _customCla,
