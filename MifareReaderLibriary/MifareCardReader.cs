@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,13 +74,13 @@ namespace MifareReaderLibriary
                     throw new Exception("LOAD KEY failed.");
                 }
 
-                var authSuccessful = card.Authenticate(_config.MSB, _config.LSB, KeyType.KeyA, 0x00);
+                var authSuccessful = card.Authenticate(0, 0x7, KeyType.KeyA, 0x00);
                 if (!authSuccessful)
                 {
                     throw new Exception("AUTHENTICATE failed.");
                 }
 
-                var result = card.ReadBinary(_config.MSB, _config.LSB, 16);
+                var result = card.ReadBinary(0, 0x7, 16);
                 var resultString = result != null
                     ? BitConverter.ToString(result)
                     : null;
@@ -147,7 +148,7 @@ namespace MifareReaderLibriary
                 var loadKeySuccessful = card.LoadKey(
                     KeyStructure.NonVolatileMemory,
                     0x00, // first key slot
-                    _config.AuthKeys[0].Key // key
+                    keys.First().Key // key
                 );
 
                 if (!loadKeySuccessful)
@@ -155,18 +156,15 @@ namespace MifareReaderLibriary
                     throw new Exception("LOAD KEY failed.");
                 }
 
-                var authSuccessful = card.Authenticate(_config.MSB, _config.LSB, KeyType.KeyA, 0x00);
+                var authSuccessful = card.Authenticate(1, 0, KeyType.KeyA, 0x00);
                 if (!authSuccessful)
                 {
                     throw new Exception("AUTHENTICATE failed.");
                 }
 
-                var result = card.ReadBinary(_config.MSB, _config.LSB, 16);
-                var resultString = result != null
-                    ? BitConverter.ToString(result)
-                    : null;
+                var result = card.UpdateBinary(1, 0, data.ToCharArray().Cast<byte>().ToArray());
 
-                CardRegistered?.Invoke(this, new CardRegisteredEventArgs(resultString));
+                return result;
 
                 //var updateSuccessful = card.UpdateBinary(MSB, LSB, DATA_TO_WRITE);
 
@@ -181,8 +179,6 @@ namespace MifareReaderLibriary
                 //        ? BitConverter.ToString(result)
                 //        : null);
             }
-
-            return true;
         }
 
         private bool IsValidATR(byte[] cardStatusAtr)
