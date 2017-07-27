@@ -38,7 +38,7 @@ namespace MifareReaderLibriary
             ct.Register(() => { tcs.TrySetCanceled(); });
             CardInsertedEvent onCardInserted = (sender, args) => { tcs.TrySetResult(args); };
             monitor.CardInserted += onCardInserted;
-            monitor.Start(new[] { readerName });
+            monitor.Start(new[] {readerName});
             var cardStatus = await tcs.Task.ConfigureAwait(false);
             if (!IsValidATR(cardStatus.Atr))
             {
@@ -84,9 +84,22 @@ namespace MifareReaderLibriary
                         }
                         Debug.WriteLine($"Authentification to block {currentBlock} succeded");
 
-                        var dataToWrite = bytesToWrite.Skip((currentBlock-4) * 16).Take(16).ToArray();
-                        var blockToWrite = new byte[16];
-                        Array.Copy(dataToWrite, blockToWrite, dataToWrite.Length);
+                        var dataToWrite = bytesToWrite.Skip((currentBlock - 4) * 16).Take(16).ToArray();
+                        byte[] blockToWrite;
+                        if (dataToWrite.Length == 0)
+                        {
+                            return true;
+                        }
+                        else if (dataToWrite.Length < 16)
+                        {
+                            blockToWrite = new byte[16];
+                            Array.Copy(dataToWrite, blockToWrite, dataToWrite.Length);
+                        }
+                        else
+                        {
+                            blockToWrite = dataToWrite;
+                        }
+                        Debug.WriteLine($"In block {currentBlock} writing {blockToWrite}");
                         var updateResult = card.UpdateBinary(0, currentBlock, blockToWrite);
                         if (updateResult == false)
                         {
@@ -94,19 +107,10 @@ namespace MifareReaderLibriary
                             Debug.WriteLine($"Fail to write block {currentBlock}");
                             return false;
                         }
-                        else
-                        {
-                            return true;
-                        }
                     }
                 }
-                return true;
+                return false;
             }
-        }
-
-        private bool CheckIfTrailerBlock(byte currentBlock)
-        {
-            return (currentBlock + 1) % 4 == 0;
         }
 
         public Task<bool> ChangeTrailersAsync(IDictionary<MifareKey, SectorTrailer> data, CancellationToken ct)
@@ -136,6 +140,11 @@ namespace MifareReaderLibriary
         }
 
         public event EventHandler CardRegistered;
+
+        private bool CheckIfTrailerBlock(byte currentBlock)
+        {
+            return (currentBlock + 1) % 4 == 0;
+        }
 
         private string ATRToHexStr(byte[] atr)
         {
