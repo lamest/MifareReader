@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -126,12 +127,13 @@ namespace MifareReaderLibriary
         {
             if (!IsValidATR(e.Atr))
             {
+                Debug.WriteLine("Card with invalid ATR inserted");
                 return;
             }
+            Debug.WriteLine("Card with valid ATR inserted");
             using (var isoReader = new IsoReader(_context, _readerName, SCardShareMode.Shared, SCardProtocol.Any, false))
             {
                 var card = new MifareCard(isoReader);
-
                 var loadKeySuccessful = card.LoadKey(
                     KeyStructure.NonVolatileMemory,
                     0x00, // first key slot
@@ -141,8 +143,10 @@ namespace MifareReaderLibriary
                 if (!loadKeySuccessful)
                 {
                     //key load failed
+                    Debug.WriteLine("Auth key load failed");
                     return;
                 }
+                Debug.WriteLine("Auth key load success");
 
                 var cardDump = new StringBuilder();
 
@@ -157,13 +161,16 @@ namespace MifareReaderLibriary
                         if (!authSuccessful)
                         {
                             //autentication failed
+                            Debug.WriteLine($"Authentification to block {currentBlock} with key number {0} failed");
                             return;
                         }
+                        Debug.WriteLine($"Authentification to block {currentBlock} succeded");
 
                         var result = card.ReadBinary(0, currentBlock, 16);
                         if (result == null)
                         {
                             //fail to get block
+                            Debug.WriteLine($"Fail to get block {currentBlock}");
                             return;
                         }
                         var currentBlockString = Encoding.UTF8.GetString(result);
@@ -176,6 +183,7 @@ namespace MifareReaderLibriary
                             //end of usefull content
                             cardDump.Append(currentBlockString.TrimEnd('\0'));
                             var resultString = cardDump.ToString();
+                            Debug.WriteLine($"Reading complete on block {currentBlock}. Result is {resultString}");
                             CardRegistered?.Invoke(this, new CardRegisteredEventArgs(resultString));
                             return;
                         }
