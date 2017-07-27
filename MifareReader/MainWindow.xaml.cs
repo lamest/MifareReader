@@ -15,10 +15,11 @@ namespace MifareReader
         {
             reader = new MifareCardReader(MifareConfigurationFabric.GetDefaultConfig());
             InitializeComponent();
-            reader.StartScan();
-            //var writer = (IMifareCardWriter)reader;
+            var devices = reader.GetDevices();
+            reader.StartScan(devices[1]);
+            //var writer = new MifareCardWriter();
             //var writeConfig = MifareConfigurationFabric.GetWriteConfig();
-            //writer.WriteDataAsync(writeConfig.AuthKeys, "TestDataString", new CancellationTokenSource().Token);
+            //writer.WriteDataAsync(devices[1], writeConfig.AuthKeys, "Looooong Test__Data111String222", new CancellationTokenSource().Token);
         }
     }
 }

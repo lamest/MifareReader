@@ -12,8 +12,6 @@ namespace MifareReaderLibriary
         {
             return new MifareConfiguration()
             {
-                MSB = 0x00,
-                LSB = 0x08,
                 AuthKeys = new[]
                 {
                     new MifareKey
@@ -30,8 +28,6 @@ namespace MifareReaderLibriary
         {
             return new MifareConfiguration()
             {
-                MSB = 0x00,
-                LSB = 0x08,
                 AuthKeys = new[]
                 {
                     new MifareKey
@@ -47,8 +43,6 @@ namespace MifareReaderLibriary
 
     public class MifareConfiguration
     {
-        public byte MSB { get; set; } 
-        public byte LSB { get; set; }
         public IList<MifareKey> AuthKeys { get; set; }
     }
 

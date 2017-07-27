@@ -9,7 +9,7 @@ namespace MifareReaderLibriary
 {
     internal interface IMifareCardWriter
     {
-        Task<bool> WriteDataAsync(ICollection<MifareKey> keys, string data, CancellationToken ct);
-        Task<bool> ChangeTrailersAsync(IDictionary<MifareKey, SectorTrailer> data, CancellationToken ct);
+        Task<bool> WriteDataAsync(string readerName, ICollection<MifareKey> keys, string data, CancellationToken ct);
+        Task<bool> ChangeTrailersAsync(string readerName, IDictionary<MifareKey, SectorTrailer> data, CancellationToken ct);
     }
 }

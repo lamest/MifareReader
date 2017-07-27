@@ -4,8 +4,9 @@ namespace MifareReaderLibriary
 {
     public interface IRFCardReader
     {
-        void StartScan();
-        void StopScan();
+        string[] GetDevices();
+        void StartScan(string deviceName);
+        void StopScan(string deviceName);
         event EventHandler CardRegistered;
     }
 }

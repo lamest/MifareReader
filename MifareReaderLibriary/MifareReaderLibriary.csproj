@@ -48,6 +48,7 @@
     <Compile Include="KeyType.cs" />
     <Compile Include="KeyStructure.cs" />
     <Compile Include="MifareCard.cs" />
+    <Compile Include="MifareCardWriter.cs" />
     <Compile Include="MifareConfigurationFabric.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
