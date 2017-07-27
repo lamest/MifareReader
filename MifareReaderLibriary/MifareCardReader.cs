@@ -32,20 +32,20 @@ namespace MifareReaderLibriary
                 throw new Exception("No readers available");
             }
 
-            _readerName = ChooseReader(readerNames);
+            var readerName = ChooseReader(readerNames);
             var monitor = new SCardMonitor(contextFactory, SCardScope.System);
             var tcs = new TaskCompletionSource<CardStatusEventArgs>();
             ct.Register(() => { tcs.TrySetCanceled(); });
             CardInsertedEvent onCardInserted = (sender, args) => { tcs.TrySetResult(args); };
             monitor.CardInserted += onCardInserted;
-            monitor.Start(new[] {_readerName});
-            var cardStatus = await tcs.Task;
-            if (IsValidATR(cardStatus.Atr))
+            monitor.Start(new[] { readerName });
+            var cardStatus = await tcs.Task.ConfigureAwait(false);
+            if (!IsValidATR(cardStatus.Atr))
             {
                 throw new Exception("Invalid card type");
             }
 
-            using (var isoReader = new IsoReader(_context, _readerName, SCardShareMode.Exclusive, SCardProtocol.Any, false))
+            using (var isoReader = new IsoReader(context, readerName, SCardShareMode.Shared, SCardProtocol.Any, false))
             {
                 var card = new MifareCard(isoReader);
 
@@ -60,29 +60,53 @@ namespace MifareReaderLibriary
                     throw new Exception("LOAD KEY failed.");
                 }
 
-                var authSuccessful = card.Authenticate(1, 0, KeyType.KeyA, 0x00);
-                if (!authSuccessful)
+                var bytesToWrite = Encoding.UTF8.GetBytes(data);
+                if (bytesToWrite.Length > 16 * 16 * 3)
                 {
-                    throw new Exception("AUTHENTICATE failed.");
+                    throw new Exception($"Data length is more than {16 * 16 * 3}");
                 }
 
-                var result = card.UpdateBinary(1, 0, data.ToCharArray().Cast<byte>().ToArray());
+                //read all blocks except 0 sector and trailers
+                for (byte i = 1; i < 16; i++)
+                {
+                    for (byte j = 0; j < 3; j++)
+                    {
+                        var currentBlock = (byte) (i * 4 + j);
+                        if (CheckIfTrailerBlock(currentBlock))
+                        {
+                            throw new Exception("Trying to write to trailer block");
+                        }
+                        //auth in every block
+                        var authSuccessful = card.Authenticate(0, currentBlock, KeyType.KeyA, 0x00);
+                        if (!authSuccessful)
+                        {
+                            throw new Exception("AUTHENTICATE failed.");
+                        }
+                        Debug.WriteLine($"Authentification to block {currentBlock} succeded");
 
-                return result;
-
-                //var updateSuccessful = card.UpdateBinary(MSB, LSB, DATA_TO_WRITE);
-
-                //if (!updateSuccessful)
-                //{
-                //    throw new Exception("UPDATE BINARY failed.");
-                //}
-
-                //result = card.ReadBinary(MSB, LSB, 16);
-                //Console.WriteLine("Result (after BINARY UPDATE): {0}",
-                //    (result != null)
-                //        ? BitConverter.ToString(result)
-                //        : null);
+                        var dataToWrite = bytesToWrite.Skip((currentBlock-4) * 16).Take(16).ToArray();
+                        var blockToWrite = new byte[16];
+                        Array.Copy(dataToWrite, blockToWrite, dataToWrite.Length);
+                        var updateResult = card.UpdateBinary(0, currentBlock, blockToWrite);
+                        if (updateResult == false)
+                        {
+                            //fail to get block
+                            Debug.WriteLine($"Fail to write block {currentBlock}");
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return true;
             }
+        }
+
+        private bool CheckIfTrailerBlock(byte currentBlock)
+        {
+            return (currentBlock + 1) % 4 == 0;
         }
 
         public Task<bool> ChangeTrailersAsync(IDictionary<MifareKey, SectorTrailer> data, CancellationToken ct)
@@ -184,7 +208,10 @@ namespace MifareReaderLibriary
                             cardDump.Append(currentBlockString.TrimEnd('\0'));
                             var resultString = cardDump.ToString();
                             Debug.WriteLine($"Reading complete on block {currentBlock}. Result is {resultString}");
-                            CardRegistered?.Invoke(this, new CardRegisteredEventArgs(resultString));
+                            if (!string.IsNullOrEmpty(resultString))
+                            {
+                                CardRegistered?.Invoke(this, new CardRegisteredEventArgs(resultString));
+                            }
                             return;
                         }
                     }

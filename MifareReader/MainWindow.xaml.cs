@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Threading;
+using System.Windows;
 using MifareReaderLibriary;
 
 namespace MifareReader
@@ -15,6 +16,9 @@ namespace MifareReader
             reader = new MifareCardReader(MifareConfigurationFabric.GetDefaultConfig());
             InitializeComponent();
             reader.StartScan();
+            //var writer = (IMifareCardWriter)reader;
+            //var writeConfig = MifareConfigurationFabric.GetWriteConfig();
+            //writer.WriteDataAsync(writeConfig.AuthKeys, "TestDataString", new CancellationTokenSource().Token);
         }
     }
 }
