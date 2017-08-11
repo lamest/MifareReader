@@ -36,7 +36,7 @@ namespace MifareReaderLibriary
             _monitor.CardInserted -= OnCardInserted;
         }
 
-        public event EventHandler CardRegistered;
+        public event EventHandler<CardRegisteredEventArgs> CardRegistered;
 
         public string[] GetDevices()
         {

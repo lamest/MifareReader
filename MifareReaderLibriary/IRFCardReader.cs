@@ -7,6 +7,6 @@ namespace MifareReaderLibriary
         string[] GetDevices();
         void StartScan(string deviceName);
         void StopScan(string deviceName);
-        event EventHandler CardRegistered;
+        event EventHandler<CardRegisteredEventArgs> CardRegistered;
     }
 }
