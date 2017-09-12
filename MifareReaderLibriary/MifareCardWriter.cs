@@ -10,7 +10,7 @@ using PCSC.Iso7816;
 
 namespace MifareReaderLibriary
 {
-    internal class MifareCardWriter:IMifareCardWriter
+    public class MifareCardWriter:IMifareCardWriter
     {
         private const int MaxDataSize = 15 * 16 * 3;
         private const byte MaxSector = 16;
