@@ -14,7 +14,6 @@ namespace MifareReaderLibriary
         private const byte MaxSector = 16;
         private const byte BlocksPerSector = 4;
         private const byte BytesPerBlock = 16;
-        private const char EndOfDataChar = '\0';
         private MifareConfiguration _config;
         private SCardMonitor _monitor;
 
@@ -83,7 +82,7 @@ namespace MifareReaderLibriary
                 }
                 Debug.WriteLine("Auth key load success");
 
-                var cardDump = new StringBuilder();
+                var cardDump = new List<byte>();
 
                 //read all blocks except 0 sector and trailers
                 for (byte sectorNumber = 1; sectorNumber < MaxSector; sectorNumber++)
@@ -101,38 +100,24 @@ namespace MifareReaderLibriary
                         }
                         Debug.WriteLine($"Authentification to block {currentBlock} succeded");
 
-                        var result = card.ReadBinary(0, currentBlock, BytesPerBlock);
-                        if (result == null)
+                        var blockResult = card.ReadBinary(0, currentBlock, BytesPerBlock);
+                        if (blockResult == null)
                         {
                             //fail to get block
                             Debug.WriteLine($"Fail to get block {currentBlock}");
                             return;
                         }
-                        var currentBlockString = Encoding.UTF8.GetString(result);
-                        if (!IsEndOfData(currentBlockString))
-                        {
-                            cardDump.Append(currentBlockString);
-                        }
-                        else
-                        {
-                            //end of usefull content
-                            cardDump.Append(currentBlockString.TrimEnd(EndOfDataChar));
-                            var resultString = cardDump.ToString();
-                            Debug.WriteLine($"Reading complete on block {currentBlock}. Result is {resultString}");
-                            if (!string.IsNullOrEmpty(resultString))
-                            {
-                                CardRegistered?.Invoke(this, new CardRegisteredEventArgs(resultString));
-                            }
-                            return;
-                        }
+                        cardDump.AddRange(blockResult);
                     }
                 }
-            }
-        }
 
-        private static bool IsEndOfData(string currentBlockString)
-        {
-            return currentBlockString.Contains(EndOfDataChar);
+                var result = cardDump.ToArray();
+                Debug.WriteLine("Reading complete.");
+                if (result.Length != 0)
+                {
+                    CardRegistered?.Invoke(this, new CardRegisteredEventArgs(result));
+                }
+            }
         }
 
         private static bool NoReaderAvailable(ICollection<string> readerNames)

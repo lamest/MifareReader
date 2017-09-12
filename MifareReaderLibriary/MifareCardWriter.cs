@@ -26,7 +26,7 @@ namespace MifareReaderLibriary
             }
         }
 
-        public async Task<bool> WriteDataAsync(string readerName, ICollection<MifareKey> keys, string data, CancellationToken ct)
+        public async Task<bool> WriteDataAsync(string readerName, ICollection<MifareKey> keys, byte[] bytesToWrite, CancellationToken ct)
         {
             if (string.IsNullOrEmpty(readerName))
             {
@@ -53,7 +53,6 @@ namespace MifareReaderLibriary
                     throw new Exception("LOAD KEY failed.");
                 }
 
-                var bytesToWrite = Encoding.UTF8.GetBytes(data);
                 if (bytesToWrite.Length > MaxDataSize)
                 {
                     throw new Exception($"Data length is more than {MaxDataSize}");
