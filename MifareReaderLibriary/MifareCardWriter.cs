@@ -122,6 +122,7 @@ namespace MifareReaderLibriary
             monitor.Start(new[] { readerName });
             var cardStatus = await tcs.Task.ConfigureAwait(false);
             monitor.CardInserted -= onCardInserted;
+            monitor.Cancel();
             return cardStatus;
         }
 
