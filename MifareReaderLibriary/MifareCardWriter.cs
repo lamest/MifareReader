@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using PCSC;
@@ -15,7 +14,7 @@ namespace MifareReaderLibriary
         private const int MaxDataSize = 15 * 16 * 3;
         private const byte MaxSector = 16;
         private const byte BlocksPerSector = 4;
-        private const byte BytesPerBlock = 16;
+        public const byte BytesPerBlock = 16;
 
         public string[] FindReaders()
         {
@@ -23,6 +22,22 @@ namespace MifareReaderLibriary
             using (var context = contextFactory.Establish(SCardScope.System))
             {
                 return context.GetReaders();
+            }
+        }
+
+        public IEnumerable<byte[]> GenerateChunk(IEnumerable<byte> input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException();
+            }
+            int currentChunk = 0;
+            byte[] returnArray = input.Skip(currentChunk * BytesPerBlock).Take(BytesPerBlock).ToArray();
+            while (returnArray.Length != 0)
+            {
+                currentChunk++;
+                yield return returnArray;
+                returnArray = input.Skip(currentChunk * BytesPerBlock).Take(BytesPerBlock).ToArray();
             }
         }
 
@@ -58,30 +73,22 @@ namespace MifareReaderLibriary
                     throw new Exception($"Data length is more than {MaxDataSize}");
                 }
 
+                var generator = GenerateChunk(bytesToWrite).GetEnumerator();
                 //write to every block except 0 sector and trailers
                 for (byte sectorNumber = 1; sectorNumber < MaxSector; sectorNumber++)
                 {
-                    for (byte blockNumber = 0; blockNumber < BlocksPerSector-1; blockNumber++)
+                    for (byte blockNumber = 0; blockNumber < BlocksPerSector - 1; blockNumber++)
                     {
-                        var currentBlock = (byte)(sectorNumber * BlocksPerSector + blockNumber);
+                        var currentBlock = (byte) (sectorNumber * BlocksPerSector + blockNumber);
                         if (CheckIfTrailerBlock(currentBlock))
                         {
                             throw new Exception("Trying to write to trailer block");
                         }
-                        var dataToWrite = bytesToWrite.Skip((currentBlock - 4) * BytesPerBlock).Take(BytesPerBlock).ToArray();
-                        byte[] blockToWrite;
-                        if (dataToWrite.Length == 0)
+
+                        byte[] blockToWrite = GetNextBlock(generator);
+                        if (blockToWrite == null)
                         {
                             return true;
-                        }
-                        else if (dataToWrite.Length < BytesPerBlock)
-                        {
-                            blockToWrite = new byte[BytesPerBlock];
-                            Array.Copy(dataToWrite, blockToWrite, dataToWrite.Length);
-                        }
-                        else
-                        {
-                            blockToWrite = dataToWrite;
                         }
 
                         //auth in every block
@@ -105,6 +112,31 @@ namespace MifareReaderLibriary
                 }
                 return false;
             }
+        }
+
+        private byte[] GetNextBlock(IEnumerator<byte[]> enumerator)
+        {
+            byte[] dataToWrite = null;
+            if (enumerator.MoveNext() && enumerator.Current != null)
+            {
+                dataToWrite = enumerator.Current;
+            }
+            else
+            {
+                return null;
+            }
+
+            byte[] blockToWrite;
+            if (dataToWrite.Length < BytesPerBlock)
+            {
+                blockToWrite = new byte[BytesPerBlock];
+                Array.Copy(dataToWrite, blockToWrite, dataToWrite.Length);
+            }
+            else
+            {
+                blockToWrite = dataToWrite;
+            }
+            return blockToWrite;
         }
 
         public Task<bool> ChangeTrailersAsync(string readerName, IDictionary<MifareKey, SectorTrailer> data, CancellationToken ct)
